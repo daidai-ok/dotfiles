@@ -1,7 +1,290 @@
-# Send Option key as Alt(Meta) key (tmuxのOption+のMacキーボードバインド)
+# =============================================================================
+# Ghostty 設定ファイル
+# tmux上での複数Claude Codeセッション並列操作に最適化
+# =============================================================================
+#
+# 使い方:
+#   このファイルは ~/.config/ghostty/config にコピーして配置する。
+#   シンボリックリンクは使用しないこと（正しく読み込めない場合がある）。
+#   cp ~/dotfiles/ghostty/config ~/.config/ghostty/config
+#   Ghosttyは起動時にこのファイルを自動で読み込む。
+#   設定変更後は Cmd+Shift+, で即座に反映できる（再起動不要）。
+#
+# GhosttyとtmuxでClaude Codeを使うときの構成:
+#   Ghosttyタブ  = プロジェクト単位の切り替え（Cmd+1〜5）
+#   tmuxセッション = Claude Codeインスタンスの管理（tmux側で操作）
+#   tmuxペイン   = 作業領域の分割（tmux側で操作）
+#   Ghostty split = tmux外で一時的に別ターミナルが必要な場合のみ使用
+#
+# -----------------------------------------------------------------------------
+# キーバインド一覧（チートシート）
+# -----------------------------------------------------------------------------
+#
+# [タブ操作]
+#   Cmd+T             新しいタブを作る
+#   Cmd+W             今のタブ/splitを閉じる
+#   Cmd+1〜5          タブ番号で直接移動
+#   Cmd+Shift+]       次のタブへ
+#   Cmd+Shift+[       前のタブへ
+#
+# [Ghostty split（補助的な画面分割）]
+#   Cmd+D             右に分割
+#   Cmd+Shift+D       下に分割
+#   Cmd+Option+矢印   split間のフォーカス移動
+#   Cmd+Shift+Enter   splitをズーム（全画面表示/戻す）
+#   Cmd+Ctrl+=        split間のサイズを均等にする
+#
+# [ウィンドウ]
+#   Cmd+N             新しいウィンドウを開く
+#   Cmd+Enter         フルスクリーン切り替え
+#   Cmd+Shift+P       ウィンドウを常に最前面に固定/解除
+#
+# [フォントサイズ]
+#   Cmd+=             フォントを大きくする
+#   Cmd+-             フォントを小さくする
+#   Cmd+0             フォントサイズを元に戻す
+#
+# [ユーティリティ]
+#   Cmd+,             この設定ファイルを開く
+#   Cmd+Shift+,       設定を再読み込みする
+#   Cmd+K             画面をクリアする（出力が溜まったとき）
+#   Cmd+Shift+上/下   前/次のプロンプトにジャンプ
+#   Cmd+PageUp/Down   ページ単位でスクロール
+#   Cmd+Home/End      スクロールバッファの先頭/末尾へ
+#
+# [クイックターミナル]
+#   グローバルホットキー（Ghostty環境設定で割当）で画面上部からドロップダウン表示。
+#   フォーカスを外すと自動で隠れる。メインの作業を中断せずにコマンド実行可能。
+#
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 入力設定
+# -----------------------------------------------------------------------------
+
+# macOSのOptionキーをAlt(Meta)として動作させる
+# これがないとtmux内の Option+1〜5 などのキーバインドが動かない
 macos-option-as-alt = true
 
-# マウス選択でのコピペ有効化
+# マウスでテキストを選択するだけで自動的にクリップボードにコピーされる
 copy-on-select = clipboard
+
+# シェル統合機能（プロンプトジャンプ等の高度な機能を有効化）
+# SSH先でもterminfo/環境変数を自動転送してくれる
 shell-integration-features = ssh-terminfo,ssh-env
+
+# タイピング中はマウスカーソルを自動で隠す（邪魔にならない）
+mouse-hide-while-typing = true
+
+# -----------------------------------------------------------------------------
+# 外観設定
+# -----------------------------------------------------------------------------
+
+# フォント設定
+# Nerd Font を使うことでtmuxステータスバーのアイコンが正しく表示される
+# インストール: brew install --cask font-blex-mono-nerd-font
+font-family = BlexMono Nerd Font Mono
+font-size = 14
+
+# カラーテーマ（落ち着いた暗色系。tmuxのステータスバーもこのテーマに合わせている）
+theme = Ryuuko
+
+# ウィンドウ上部のタイトルバーを表示する
+window-decoration = true
+
+# 背景を少し透過させてぼかす（後ろのブラウザ等を薄く透かして参照できる）
+# opacity: 0.0=完全透明 〜 1.0=不透明、blur: ぼかしの強さ（0〜20程度が実用的）
+background-blur = 20
+background-opacity = 0.9
+
+# 背景画像（透過表示）
+# 画像パスは適宜変更すること。PNG/JPEG対応。
+background-image = /Users/daisuke.oda/Downloads/bg.jpg
+background-image-opacity = 0.3
+background-image-fit = cover
+background-image-position = center
+
+# テーマの暗い色でも文字が読めるよう最低限のコントラストを保証する
+# 1.0=制限なし、値を上げると暗い色が明るく補正される
+minimum-contrast = 1.3
+
+# 画面端に余白を入れて文字が端に張り付かないようにする（単位: ピクセル）
+window-padding-x = 4
+window-padding-y = 2
+window-padding-balance = true
+
+# -----------------------------------------------------------------------------
+# Ghostty分割ペイン設定（tmuxとの役割分担）
+# - Ghosttyタブ: プロジェクト/コンテキスト単位の切り替え
+# - Ghostty split: tmux外で一時的に別ターミナルを開きたい場合
+# - tmuxペイン: メインの分割作業領域（Claude Codeセッション管理）
+# -----------------------------------------------------------------------------
+
+# Ghostty splitを複数開いたとき、操作していないsplitを薄く表示する
+# これによりどのsplitが今アクティブか一目で分かる（0.0〜1.0）
+unfocused-split-opacity = 0.7
+
+# マウスカーソルをsplitの上に持っていくだけでフォーカスが移動する
+focus-follows-mouse = true
+
+# -----------------------------------------------------------------------------
+# ウィンドウ・タブ管理
+# -----------------------------------------------------------------------------
+
+# Ghosttyを再起動しても、タブやsplitのレイアウトを復元する
+window-save-state = always
+
+# 新しいタブを作ると、今いるタブのすぐ隣に作られる（末尾ではなく）
+window-new-tab-position = current
+
+# ウィンドウをリサイズしたとき、サイズ（行x列）をオーバーレイ表示する
+resize-overlay = after-first
+
+# タブやsplitを閉じる前に確認ダイアログを出す
+# Claude Codeが実行中のときに誤って閉じてしまうのを防ぐ
+confirm-close-surface = true
+
+# 最後のウィンドウを閉じてもGhosttyアプリは終了しない
+# Cmd+Nですぐ新しいウィンドウを開ける
+quit-after-last-window-closed = false
+
+# -----------------------------------------------------------------------------
+# クリップボード設定
+# -----------------------------------------------------------------------------
+
+# アプリがクリップボードを読み書きすることを許可する
+# allow にすると確認ダイアログなしで動作する（ask にすると毎回確認）
+clipboard-read = allow
+clipboard-write = allow
+
+# テキストをコピーするとき、行末の余分な空白を自動で除去する
+clipboard-trim-trailing-spaces = true
+
+# 複数行テキストや制御文字を含むテキストを貼り付けるとき警告を出す
+# 悪意のあるコマンドを誤って実行してしまうのを防ぐ
+clipboard-paste-protection = true
+
+# -----------------------------------------------------------------------------
+# クイックターミナル（macOS限定機能）
+# -----------------------------------------------------------------------------
+# グローバルホットキーを押すと画面上部からターミナルがスライドして出てくる。
+# メインのClaude Code作業を中断せずに、ちょっとしたコマンドを実行できる。
+# ホットキーはGhosttyの環境設定（Preferences）で割り当てる。
+# フォーカスを外すと自動で隠れるので邪魔にならない。
+
+# ドロップダウンの出現位置（top/bottom/left/right/center）
+quick-terminal-position = top
+
+# 画面に対する占有率（0.3 = 30%）
+quick-terminal-size = 30%
+
+# 他のウィンドウをクリックしたとき自動で隠す
+quick-terminal-autohide = true
+
+# スライドアニメーションの速度（秒）
+quick-terminal-animation-duration = 0.15
+
+# -----------------------------------------------------------------------------
+# キーバインド設定
+# 方針: Cmd系 = Ghosttyレベル操作、Ctrl/Alt系 = tmux/アプリに通す
+# tmux prefix: C-a は Ghostty側で消費しない
+# -----------------------------------------------------------------------------
+
+# --- タブ操作（Cmd系でGhosttyタブを管理）---
+
+# Cmd+T: 新規タブ（別プロジェクト/コンテキスト用）
+keybind = super+t=new_tab
+
+# Cmd+W: 現在のサーフェスを閉じる
+keybind = super+w=close_surface
+
+# Cmd+Shift+]: 次のタブへ
+keybind = super+shift+]=next_tab
+
+# Cmd+Shift+[: 前のタブへ
+keybind = super+shift+[=previous_tab
+
+# Cmd+1〜5: タブ番号で直接移動（並列プロジェクト切り替え）
+keybind = super+1=goto_tab:1
+keybind = super+2=goto_tab:2
+keybind = super+3=goto_tab:3
+keybind = super+4=goto_tab:4
+keybind = super+5=goto_tab:5
+
+# --- Ghostty split操作（tmux外での補助的な分割）---
+
+# Cmd+D: 右に分割
+keybind = super+d=new_split:right
+
+# Cmd+Shift+D: 下に分割
+keybind = super+shift+d=new_split:down
+
+# Cmd+Ctrl+=: split間のサイズ均等化（Ghosttyデフォルト準拠）
+# ※ Cmd+Shift+EnterはGhosttyデフォルトの toggle_split_zoom のため別キーを使用
+keybind = super+ctrl+equal=equalize_splits
+
+# Cmd+Shift+Enter: 現在のsplitをズーム（Ghosttyデフォルト準拠）
+keybind = super+shift+enter=toggle_split_zoom
+
+# Cmd+Option+矢印キー: Ghostty split間のフォーカス移動（Ghosttyデフォルト準拠）
+# ※ Cmd+矢印はmacOS標準操作（行頭/行末移動, プロンプトジャンプ）のため使わない
+keybind = super+alt+up=goto_split:top
+keybind = super+alt+down=goto_split:bottom
+keybind = super+alt+left=goto_split:left
+keybind = super+alt+right=goto_split:right
+
+# --- ウィンドウ操作 ---
+
+# Cmd+N: 新規ウィンドウ
+keybind = super+n=new_window
+
+# Cmd+Enter: フルスクリーン切り替え
+keybind = super+enter=toggle_fullscreen
+
+# Cmd+Shift+P: ウィンドウを常に最前面に（資料を見ながらコーディング）
+# ※ Cmd+Shift+TはGhosttyデフォルトの undo に割り当て済みのため別キーを使用
+keybind = super+shift+p=toggle_window_float_on_top
+
+# --- フォントサイズ（ペアプログラミングやプレゼン時に調整）---
+
+# Cmd+=: フォントサイズ拡大
+keybind = super+equal=increase_font_size:1
+
+# Cmd+-: フォントサイズ縮小
+keybind = super+minus=decrease_font_size:1
+
+# Cmd+0: フォントサイズリセット
+keybind = super+0=reset_font_size
+
+# --- ユーティリティ ---
+
+# Cmd+,: 設定ファイルを開く（Ghosttyデフォルト）
+# Cmd+Shift+,: 設定を再読み込み（Ghosttyデフォルト）
+# ※ 両方ともGhosttyデフォルトのため明示的な設定は不要だが、分かりやすさのため記載
+keybind = super+,=open_config
+keybind = super+shift+,=reload_config
+
+# Cmd+K: 画面クリア（長時間のClaude Code出力後にリセット）
+keybind = super+k=clear_screen
+
+# Cmd+Shift+上: プロンプト単位で上にジャンプ（シェル統合使用時）
+keybind = super+shift+up=jump_to_prompt:-1
+
+# Cmd+Shift+下: プロンプト単位で下にジャンプ
+keybind = super+shift+down=jump_to_prompt:1
+
+# --- スクロール ---
+
+# PageUp/PageDown: スクロール（tmux内ではtmuxが処理するので競合しない）
+keybind = super+page_up=scroll_page_up
+keybind = super+page_down=scroll_page_down
+
+# Cmd+Home/End: スクロールバッファの先頭/末尾へ
+keybind = super+home=scroll_to_top
+keybind = super+end=scroll_to_bottom
+
+# --- スクロールバック ---
+
+# スクロールバッファサイズ（Claude Codeの長い出力を遡れるように、10MB）
+scrollback-limit = 10000000
 
