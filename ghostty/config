@@ -1,0 +1,7 @@
+# Send Option key as Alt(Meta) key (tmuxのOption+のMacキーボードバインド)
+macos-option-as-alt = true
+
+# マウス選択でのコピペ有効化
+copy-on-select = clipboard
+shell-integration-features = ssh-terminfo,ssh-env
+

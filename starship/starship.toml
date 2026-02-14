@@ -1,0 +1,34 @@
+# Starship configuration
+
+# ===================
+# Prompt Layout
+# ===================
+format = """$directory$git_branch$git_status\n$character"""
+right_format = """$time"""
+
+# ===================
+# Core Modules
+# ===================
+[directory]
+style = "bold cyan"
+truncation_length = 0
+truncate_to_repo = false
+read_only = ""
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+format = "[$symbol$branch]($style) "
+
+[git_status]
+style = "bold red"
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[time]
+disabled = false
+style = "dimmed white"
+format = "[$time]($style)"
+time_format = "%H:%M"
