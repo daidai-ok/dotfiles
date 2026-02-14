@@ -1,7 +1,4 @@
-## Usage
+# doefiles
 
-```terminal
-$git clone https://github.com/OdaDaisuke/dotfiles.git ~/dotfiles && cd ~/dotfiles
-$chmod +x setup.sh
-$./setup.sh
-```
+MacOS 開発環境の設定ファイル集。
+
