@@ -174,7 +174,7 @@ autocmd FileType make setlocal noexpandtab tabstop=4 shiftwidth=4
 " ===========================================
 "  Filetype Detection
 " ===========================================
-augroup filetypedetect
+augroup custom_filetypedetect
   autocmd!
   autocmd BufRead,BufNewFile *.md set filetype=markdown
   autocmd BufRead,BufNewFile *.mjs set filetype=javascript

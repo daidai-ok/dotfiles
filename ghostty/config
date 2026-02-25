@@ -73,6 +73,10 @@ copy-on-select = clipboard
 # SSH先でもterminfo/環境変数を自動転送してくれる
 shell-integration-features = ssh-terminfo,ssh-env
 
+# プロンプト上でOption+クリックするとカーソルがその位置に移動する
+# 長いコマンドの途中を編集したいときに便利
+cursor-click-to-move = true
+
 # タイピング中はマウスカーソルを自動で隠す（邪魔にならない）
 mouse-hide-while-typing = true
 
@@ -82,12 +86,12 @@ mouse-hide-while-typing = true
 
 # フォント設定
 # Nerd Font を使うことでtmuxステータスバーのアイコンが正しく表示される
-# インストール: brew install --cask font-blex-mono-nerd-font
-font-family = BlexMono Nerd Font Mono
+# インストール: brew install --cask font-plemol-jp-nf
+font-family = PlemolJP Console NF
 font-size = 14
 
 # カラーテーマ（落ち着いた暗色系。tmuxのステータスバーもこのテーマに合わせている）
-theme = Ryuuko
+theme = Abernathy
 
 # ウィンドウ上部のタイトルバーを表示する
 window-decoration = true
@@ -136,6 +140,14 @@ window-save-state = always
 
 # 新しいタブを作ると、今いるタブのすぐ隣に作られる（末尾ではなく）
 window-new-tab-position = current
+
+# タブのサブタイトルに現在の作業ディレクトリを表示する
+# 複数タブを開いているときに、どのタブがどのプロジェクトか一目で分かる
+window-subtitle = working-directory
+
+# 新しいタブやsplitを開いたとき、現在のディレクトリを引き継ぐ
+# 毎回 cd し直す必要がなくなる
+window-inherit-working-directory = true
 
 # ウィンドウをリサイズしたとき、サイズ（行x列）をオーバーレイ表示する
 resize-overlay = after-first
